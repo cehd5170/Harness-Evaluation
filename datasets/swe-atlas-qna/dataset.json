@@ -1,0 +1,16 @@
+{
+  "id": "swe-atlas-qna",
+  "name": "SWE-Atlas-QnA",
+  "aa_component": "SWE-Atlas-QnA",
+  "aa_reported_task_count": 124,
+  "source": "https://huggingface.co/datasets/ScaleAI/SWE-Atlas-QnA",
+  "public": true,
+  "local_files": [
+    "README.md",
+    "default_qa_config.yaml",
+    "rubric_evaluation_config.yaml",
+    "data/test-00000-of-00001.parquet",
+    "data/test.jsonl"
+  ],
+  "notes": "Public dataset. Needs conversion/judging integration before it can be executed as harness tasks."
+}

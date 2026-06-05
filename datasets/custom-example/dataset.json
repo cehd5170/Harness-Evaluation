@@ -1,0 +1,15 @@
+{
+  "id": "custom-example",
+  "name": "custom-example",
+  "aa_component": "custom",
+  "public": false,
+  "schema": "custom-jsonl-v1",
+  "local_files": [
+    "data/test.jsonl"
+  ],
+  "required_fields": [
+    "task_id",
+    "prompt"
+  ],
+  "notes": "Custom JSONL dataset. One JSON object per line."
+}

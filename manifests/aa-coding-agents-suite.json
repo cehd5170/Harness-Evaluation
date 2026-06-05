@@ -1,0 +1,36 @@
+{
+  "suite_id": "aa-coding-agents-style",
+  "metric_style": "artificial-analysis-coding-agents",
+  "components": [
+    {
+      "id": "swe-bench-pro-hard-aa",
+      "name": "SWE-Bench-Pro-Hard-AA",
+      "task_count": 150,
+      "public_dataset": false,
+      "source": "Artificial Analysis / Scale AI subset of SWE-Bench Pro",
+      "notes": "Exact AA 150-task subset is not confirmed as public. Use a licensed/exported task list if available, otherwise substitute and document a public SWE-Bench Pro subset."
+    },
+    {
+      "id": "terminal-bench-v2",
+      "name": "Terminal-Bench v2",
+      "task_count": 84,
+      "public_dataset": true,
+      "source": "Laude Institute / Terminal-Bench v2",
+      "notes": "AA reports 84 tasks. Public Terminal-Bench v2 references may expose a different task count, so pin exact local ids."
+    },
+    {
+      "id": "swe-atlas-qna",
+      "name": "SWE-Atlas-QnA",
+      "task_count": 124,
+      "public_dataset": true,
+      "dataset_url": "https://huggingface.co/datasets/ScaleAI/SWE-Atlas-QnA",
+      "source": "ScaleAI/SWE-Atlas-QnA on Hugging Face",
+      "notes": "Requires conversion into this project's task/result format plus an LLM judge or imported grader output."
+    }
+  ],
+  "aggregation": {
+    "runs_per_task": 3,
+    "component_score": "pass@1 averaged across runs in each component",
+    "index": "mean of component pass@1 scores"
+  }
+}

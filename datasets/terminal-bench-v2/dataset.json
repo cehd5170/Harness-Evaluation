@@ -1,0 +1,10 @@
+{
+  "id": "terminal-bench-v2",
+  "name": "Terminal-Bench v2",
+  "aa_component": "Terminal-Bench v2",
+  "aa_reported_task_count": 84,
+  "source": "https://github.com/harbor-framework/terminal-bench",
+  "public": true,
+  "local_files": [],
+  "notes": "Terminal-Bench is a repo/harness task set. Public references commonly mention 89 v2 tasks, while AA reports 84. Pin exact task ids before claiming AA reproduction."
+}

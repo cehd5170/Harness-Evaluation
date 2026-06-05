@@ -1,0 +1,14 @@
+{
+  "id": "swe-bench-pro-public",
+  "name": "SWE-bench Pro public split",
+  "aa_component": "SWE-Bench-Pro-Hard-AA source pool",
+  "aa_reported_task_count": 150,
+  "source": "https://huggingface.co/datasets/ScaleAI/SWE-bench_Pro",
+  "public": true,
+  "local_files": [
+    "README.md",
+    "data/test-00000-of-00001.parquet",
+    "data/test.jsonl"
+  ],
+  "notes": "AA uses a 150-task Hard-AA subset sampled from SWE-bench Pro. The exact AA subset is not confirmed public; this stores the public source pool."
+}

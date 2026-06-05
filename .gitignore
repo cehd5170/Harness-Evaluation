@@ -203,6 +203,16 @@ cython_debug/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
+# Downloadable/generated public dataset artifacts.
+# Keep manifests, docs, and scripts in git; regenerate these locally with:
+#   PYTHONPATH=src python3 scripts/sync_datasets.py
+#   PYTHONPATH=src python3 scripts/export_hf_rows.py
+datasets/**/data/*.parquet
+datasets/swe-atlas-qna/data/*.jsonl
+datasets/swe-bench-pro/data/*.jsonl
+datasets/sync-report.json
+datasets/export-report.json
+
 # Ruff stuff:
 .ruff_cache/
 

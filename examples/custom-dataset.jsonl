@@ -1,0 +1,2 @@
+{"task_id":"custom-001","prompt":"Inspect the repository and answer: what command runs the unit tests?","reference_answer":"The expected command depends on the repository.","metadata":{"source":"example","difficulty":"easy"}}
+{"task_id":"custom-002","prompt":"Fix the failing test described by the harness and report the changed files.","reference_answer":"The final answer should summarize the fix and modified files.","metadata":{"source":"example","difficulty":"medium"}}

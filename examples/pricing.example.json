@@ -1,0 +1,8 @@
+{
+  "per_million_tokens": {
+    "input": 0,
+    "cache_read": 0,
+    "cache_write": 0,
+    "output": 0
+  }
+}
