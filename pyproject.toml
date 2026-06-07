@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "harness-evaluation"
-version = "0.1.0"
-description = "Lightweight Artificial Analysis-style metrics for coding-agent harness results"
+version = "0.2.0"
+description = "Lightweight ingestion and evaluation utilities for external agent harness results"
 requires-python = ">=3.10"
 dependencies = []
 

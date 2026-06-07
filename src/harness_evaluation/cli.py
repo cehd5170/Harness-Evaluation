@@ -7,6 +7,7 @@ from pathlib import Path
 from harness_evaluation.canonical import CanonicalFormatError
 from harness_evaluation.compare import compare_runs
 from harness_evaluation.datasets import init_custom_dataset, list_datasets, sample_dataset, validate_dataset
+from harness_evaluation.ingest import IngestError, ingest_run
 from harness_evaluation.metrics import summarize_result_dir
 from harness_evaluation.summarize import summarize_run
 from harness_evaluation.usage import apply_pricing, summarize_usage_file
@@ -56,6 +57,19 @@ def build_parser() -> argparse.ArgumentParser:
     sample.add_argument("--root", default=None)
     sample.add_argument("--limit", type=int, default=3)
 
+    ingest = sub.add_parser("ingest-run", help="Convert a raw external-harness run into canonical JSON")
+    ingest.add_argument("--input-dir", required=True)
+    ingest.add_argument("--output-dir", required=True)
+    ingest.add_argument("--profile", required=True)
+    ingest.add_argument("--run-id", required=True)
+    ingest.add_argument("--system", required=True)
+    ingest.add_argument("--harness", required=True)
+    ingest.add_argument("--model", required=True)
+    ingest.add_argument("--dataset-id", required=True)
+    ingest.add_argument("--dataset-version", default=None)
+    ingest.add_argument("--code-commit", default=None)
+    ingest.add_argument("--created-at", default=None)
+
     summarize = sub.add_parser("summarize-run", help="Summarize a canonical run directory")
     summarize.add_argument("--run-dir", required=True)
 
@@ -97,6 +111,27 @@ def main() -> int:
     if args.cmd == "sample-dataset":
         root = Path(args.root) if args.root else None
         print(json.dumps(sample_dataset(args.id, root=root, limit=args.limit), ensure_ascii=False, indent=2))
+        return 0
+    if args.cmd == "ingest-run":
+        try:
+            result = ingest_run(
+                input_dir=Path(args.input_dir),
+                output_dir=Path(args.output_dir),
+                profile_path=Path(args.profile),
+                run_metadata={
+                    "run_id": args.run_id,
+                    "system": args.system,
+                    "harness": args.harness,
+                    "model": args.model,
+                    "dataset_id": args.dataset_id,
+                    "dataset_version": args.dataset_version,
+                    "code_commit": args.code_commit,
+                    "created_at": args.created_at,
+                },
+            )
+        except IngestError as exc:
+            raise SystemExit(str(exc)) from exc
+        print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     if args.cmd == "summarize-run":
         try:

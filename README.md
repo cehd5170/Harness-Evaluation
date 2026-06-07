@@ -1,20 +1,58 @@
 # Harness-Evaluation
 
-Lightweight evaluation utilities for coding-agent harness results.
+Lightweight ingestion and evaluation utilities for external agent harness
+results.
 
-This repository is intentionally focused on the pieces needed to mirror the
-metric shape of Artificial Analysis' Coding Agents page:
+External harnesses and CLI agents, including custom DeepAgent harnesses,
+Claude Code, Codex, and Qwen CLI, remain responsible for running and scoring
+tasks. This repository only:
 
-- Performance / coding-agent index
-- Token usage per task
-- API cost per task
-- Agent execution time per task
-- Dataset/component manifest
+1. ingests raw result files through mapping profiles,
+2. writes canonical run JSON,
+3. summarizes canonical runs, and
+4. compares canonical runs.
 
-It does not include agent adapters or a sandbox runner. Feed it result JSON
-from whichever harness you use.
+It does not run agents, call model APIs, automate browsers or desktop GUIs,
+execute sandboxes, implement harness internals, or perform LLM judging.
 
-## Usage
+## v0.2 Workflow
+
+Ingest a flat DeepAgent-style raw run:
+
+```bash
+PYTHONPATH=src python3 -m harness_evaluation.cli ingest-run \
+  --input-dir examples/raw_runs/deepagent-exp-a \
+  --output-dir examples/canonical_runs/deepagent-exp-a \
+  --profile profiles/deepagent-result.json \
+  --run-id deepagent-exp-a \
+  --system deepagent-custom \
+  --harness deepagent \
+  --model qwen3-coder \
+  --dataset-id workflow-lite
+```
+
+Summarize the canonical run:
+
+```bash
+PYTHONPATH=src python3 -m harness_evaluation.cli summarize-run \
+  --run-dir examples/canonical_runs/deepagent-exp-a
+```
+
+Compare a candidate against a baseline:
+
+```bash
+PYTHONPATH=src python3 -m harness_evaluation.cli compare-runs \
+  --baseline examples/canonical_runs/deepagent-main \
+  --candidate examples/canonical_runs/deepagent-exp-a \
+  --threshold 0.05
+```
+
+The example comparison contains one improved task, one regressed task, and one
+unchanged task.
+
+## Existing Commands
+
+Summarize legacy/common harness result shapes into AA-style metrics:
 
 ```bash
 PYTHONPATH=src python3 -m harness_evaluation.cli metrics --results-dir path/to/results
@@ -40,19 +78,19 @@ Print the bundled AA-style component manifest:
 PYTHONPATH=src python3 -m harness_evaluation.cli manifest
 ```
 
-List downloaded/source datasets:
+Manage local datasets:
 
 ```bash
 PYTHONPATH=src python3 -m harness_evaluation.cli datasets
-```
-
-Create and validate a custom dataset:
-
-```bash
 PYTHONPATH=src python3 -m harness_evaluation.cli init-dataset --id my-custom
 PYTHONPATH=src python3 -m harness_evaluation.cli validate-dataset --id my-custom
 PYTHONPATH=src python3 -m harness_evaluation.cli sample-dataset --id my-custom
 ```
 
-See [docs/aa-coding-agents.md](docs/aa-coding-agents.md).
-See [docs/custom-datasets.md](docs/custom-datasets.md).
+## Documentation
+
+- [Canonical run format](docs/canonical-run-format.md)
+- [Raw run ingestion and profiles](docs/ingest-run.md)
+- [Run comparison](docs/run-comparison.md)
+- [AA-style metrics](docs/aa-coding-agents.md)
+- [Custom datasets](docs/custom-datasets.md)

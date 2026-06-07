@@ -1,0 +1,62 @@
+{
+  "id": "cli-task-dir",
+  "input": {
+    "layout": "task-dir",
+    "task_glob": "tasks/*",
+    "result_file": "result.json",
+    "usage_file": "usage.jsonl"
+  },
+  "fields": {
+    "task_id": [
+      "task_id",
+      "_task_dir_name"
+    ],
+    "score": [
+      "score",
+      "scoring.combined_score",
+      "result.score"
+    ],
+    "success": [
+      "success",
+      "pass",
+      "resolved"
+    ],
+    "error_type": [
+      "error_type",
+      "error.type"
+    ],
+    "error_message": [
+      "error_message",
+      "error.message"
+    ],
+    "elapsed_sec": [
+      "elapsed_sec",
+      "agent_elapsed_sec",
+      "execution_time_sec"
+    ],
+    "artifacts": [
+      "artifacts"
+    ],
+    "metadata": [
+      "metadata"
+    ]
+  },
+  "metrics": {
+    "tool_calls": [
+      "metrics.tool_calls"
+    ],
+    "failed_tool_calls": [
+      "metrics.failed_tool_calls"
+    ],
+    "safety_violations": [
+      "metrics.safety_violations"
+    ],
+    "human_interventions": [
+      "metrics.human_interventions"
+    ]
+  },
+  "usage": {
+    "parser": "usage-summary",
+    "source": "usage-file"
+  }
+}

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable
@@ -18,6 +19,15 @@ def _as_float(value: Any) -> float:
         return float(value or 0)
     except (TypeError, ValueError):
         return 0.0
+
+
+def _is_number(value: Any) -> bool:
+    if isinstance(value, bool):
+        return False
+    try:
+        return math.isfinite(float(value))
+    except (TypeError, ValueError):
+        return False
 
 
 def normalize_usage(usage: dict[str, Any]) -> dict[str, int]:
@@ -77,6 +87,7 @@ class UsageTotals:
     cache_write_tokens: int = 0
     total_tokens: int = 0
     reasoning_output_tokens: int = 0
+    cost_message_count: int = 0
     cost_input: float = 0.0
     cost_output: float = 0.0
     cost_cache_read: float = 0.0
@@ -99,20 +110,32 @@ class UsageTotals:
         self.reasoning_output_tokens += normalized["reasoning_output_tokens"]
         cost = usage.get("cost")
         if isinstance(cost, dict):
+            if any(
+                _is_number(cost.get(key))
+                for key in ("input", "output", "cacheRead", "cache_read", "cacheWrite", "cache_write", "total")
+            ):
+                self.cost_message_count += 1
             self.cost_input += _as_float(cost.get("input"))
             self.cost_output += _as_float(cost.get("output"))
             self.cost_cache_read += _as_float(cost.get("cacheRead") or cost.get("cache_read"))
             self.cost_cache_write += _as_float(cost.get("cacheWrite") or cost.get("cache_write"))
             self.cost_total += _as_float(cost.get("total"))
         else:
+            if _is_number(usage.get("total_cost_usd")) or _is_number(usage.get("cost_usd")):
+                self.cost_message_count += 1
             self.cost_total += _as_float(usage.get("total_cost_usd") or usage.get("cost_usd"))
         if model:
             self.models.add(model)
         if provider:
             self.providers.add(provider)
 
-    def summary(self, *, source: str | None = None) -> dict[str, Any]:
-        return {
+    def summary(
+        self,
+        *,
+        source: str | None = None,
+        include_cost_availability: bool = False,
+    ) -> dict[str, Any]:
+        summary = {
             "available": self.usage_message_count > 0,
             "source": source or self.source,
             "usage_message_count": self.usage_message_count,
@@ -130,6 +153,9 @@ class UsageTotals:
             "models": sorted(self.models),
             "providers": sorted(self.providers),
         }
+        if include_cost_availability:
+            summary["cost_available"] = self.cost_message_count > 0
+        return summary
 
 
 def _json_objects_from_text(text: str) -> Iterable[dict[str, Any]]:
@@ -170,9 +196,10 @@ def _usage_candidates(obj: dict[str, Any]) -> Iterable[tuple[dict[str, Any], str
             elif isinstance(info.get("last_token_usage"), dict):
                 yield info["last_token_usage"], "", "codex"
 
-    usage = obj.get("usage")
-    if isinstance(usage, dict):
-        yield usage, str(obj.get("model") or ""), str(obj.get("provider") or "")
+    for key in ("usage", "usage_summary"):
+        usage = obj.get(key)
+        if isinstance(usage, dict) and usage.get("available", True):
+            yield usage, str(obj.get("model") or ""), str(obj.get("provider") or "")
 
     message = obj.get("message")
     if isinstance(message, dict) and isinstance(message.get("usage"), dict):
@@ -186,22 +213,31 @@ def _usage_candidates(obj: dict[str, Any]) -> Iterable[tuple[dict[str, Any], str
         yield obj, str(obj.get("model") or ""), str(obj.get("provider") or "")
 
 
-def summarize_usage_text(text: str, *, source: str) -> dict[str, Any] | None:
+def summarize_usage_text(
+    text: str,
+    *,
+    source: str,
+    include_cost_availability: bool = False,
+) -> dict[str, Any] | None:
     totals = UsageTotals(source=source)
     for obj in _json_objects_from_text(text):
         for usage, model, provider in _usage_candidates(obj):
             totals.add(usage, source=source, model=model, provider=provider)
     if totals.usage_message_count == 0:
         return None
-    return totals.summary()
+    return totals.summary(include_cost_availability=include_cost_availability)
 
 
-def summarize_usage_file(path: Path) -> dict[str, Any] | None:
+def summarize_usage_file(path: Path, *, include_cost_availability: bool = False) -> dict[str, Any] | None:
     try:
         text = path.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return None
-    summary = summarize_usage_text(text, source=f"file:{path}")
+    summary = summarize_usage_text(
+        text,
+        source=f"file:{path}",
+        include_cost_availability=include_cost_availability,
+    )
     if summary is not None:
         summary["usage_file"] = str(path)
     return summary

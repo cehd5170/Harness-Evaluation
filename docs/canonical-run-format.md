@@ -1,16 +1,17 @@
 # Canonical Run Format
 
-The canonical run format is the boundary between an external agent harness and
-this repository. External harnesses run tasks and write canonical JSON files.
-Harness-Evaluation only reads those files.
+The canonical run format is the stable boundary between external agent
+harnesses and Harness-Evaluation. External harnesses run and score tasks.
+Harness-Evaluation ingests their result files, summarizes canonical runs, and
+compares canonical runs.
 
-This repository does not run agents, call models, automate browsers, manage
-sandboxes, or implement harness internals.
+This repository does not run agents, call models, automate browsers or desktop
+GUIs, execute sandboxes, or perform LLM judging.
 
 ## Directory Layout
 
 ```text
-<run-dir>/
+canonical_runs/<run_id>/
   run.json
   results/
     <task_id>.json
@@ -21,15 +22,15 @@ match the result's `task_id`.
 
 ## Run Metadata
 
-`run.json` is a JSON object with these required fields:
+`run.json` requires:
 
 ```json
 {
-  "run_id": "deepagent-exp-a-2026-06-02",
-  "system": "deepagent",
-  "harness": "custom-deepagent",
-  "model": "example-model",
-  "dataset_id": "office-tasks-example",
+  "run_id": "deepagent-exp-a",
+  "system": "deepagent-custom",
+  "harness": "deepagent",
+  "model": "qwen3-coder",
+  "dataset_id": "workflow-lite",
   "dataset_version": "v1",
   "code_commit": "2222222222222222222222222222222222222222",
   "created_at": "2026-06-02T09:00:00Z",
@@ -40,41 +41,28 @@ match the result's `task_id`.
 ```
 
 The first eight fields must be non-empty strings. `run_config` must be an
-object and may contain harness-specific settings.
+object. During ingestion, command-line metadata takes precedence over the raw
+run's `run.json`; absent optional command-line metadata falls back to the raw
+run metadata and then to `"unknown"`.
 
 ## Task Results
 
-Each result is a JSON object with:
-
-- `task_id`: required non-empty string
-- `score`: finite numeric score, or
-- `success`: boolean success result
-
-If both `score` and `success` exist, `score` is used for score aggregation and
-comparison, while `success` is used for the success rate.
-
-Optional fields:
-
-- `error_type`
-- `error_message`
-- `elapsed_sec`
-- `usage`: `input_tokens`, `output_tokens`, `total_tokens`, `cost_usd`
-- `metrics`: `tool_calls`, `failed_tool_calls`, `safety_violations`,
-  `human_interventions`
-- `artifacts`: harness-defined artifact references
-- `metadata`: `category`, `difficulty`, or other task tags
-
-Example:
+Only `task_id` plus at least one of `score` or `success` is required.
+Ingestion writes a consistent optional-field shape:
 
 ```json
 {
   "task_id": "doc-summary-001",
   "score": 0.84,
   "success": true,
+  "error_type": null,
+  "error_message": null,
   "elapsed_sec": 35.0,
   "usage": {
     "input_tokens": 2200,
     "output_tokens": 600,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
     "total_tokens": 2800,
     "cost_usd": 0.025
   },
@@ -84,14 +72,30 @@ Example:
     "safety_violations": 0,
     "human_interventions": 0
   },
+  "artifacts": {
+    "final_state": {
+      "document_written": true
+    }
+  },
   "metadata": {
     "category": "documents",
     "difficulty": "medium"
+  },
+  "raw": {
+    "source_files": [
+      "doc-summary-001.json"
+    ]
   }
 }
 ```
 
-Unknown fields are preserved and ignored by v0.1 aggregation.
+Missing optional scalar measurements may be `null` or omitted. Missing
+optional measurements are excluded from summaries rather than treated as
+zero. `raw.source_files` records the input files consumed for that task.
+
+If both `score` and `success` exist, `score` is used for score aggregation and
+comparison, while `success` is used for the success rate. A result containing
+only `success` receives a comparison score of `1.0` or `0.0`.
 
 ## Summarization Rules
 
@@ -100,10 +104,6 @@ PYTHONPATH=src python3 -m harness_evaluation.cli summarize-run \
   --run-dir examples/canonical_runs/deepagent-exp-a
 ```
 
-- Missing optional measurements are excluded from their metric, not counted as
-  zero.
-- A `success` result without `score` receives a score of `1.0` or `0.0`.
-- `success_rate` uses only results with an explicit boolean `success`.
 - Percentiles use linear interpolation over sorted elapsed values.
 - `failed_tool_call_rate` is total failed tool calls divided by total tool
   calls among results that report both fields.
@@ -111,4 +111,4 @@ PYTHONPATH=src python3 -m harness_evaluation.cli summarize-run \
   safety violations.
 - Numeric outputs are rounded to six decimal places.
 - `by_category` is included when at least one result has a non-empty string
-  `metadata.category`. Tasks without categories are omitted from that section.
+  `metadata.category`.

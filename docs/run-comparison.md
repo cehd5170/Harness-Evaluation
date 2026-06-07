@@ -1,20 +1,21 @@
 # Canonical Run Comparison
 
-Compare two externally produced canonical runs:
+Ingest raw harness outputs first, then compare canonical runs:
 
 ```bash
 PYTHONPATH=src python3 -m harness_evaluation.cli compare-runs \
   --baseline examples/canonical_runs/deepagent-main \
-  --candidate examples/canonical_runs/deepagent-exp-a
+  --candidate examples/canonical_runs/deepagent-exp-a \
+  --threshold 0.05
 ```
 
 Only tasks with the same `task_id` are compared. The output also lists task IDs
 that exist in only one run.
 
-Each common task receives a `score_delta`, calculated as:
+Each common task receives:
 
 ```text
-candidate_score - baseline_score
+score_delta = candidate_score - baseline_score
 ```
 
 If a result has only `success`, its comparison score is `1.0` for true and
@@ -22,23 +23,14 @@ If a result has only `success`, its comparison score is `1.0` for true and
 
 A task is:
 
-- a regression when `score_delta < -threshold`
-- an improvement when `score_delta > threshold`
+- a regression when `candidate_score < baseline_score - threshold`
+- an improvement when `candidate_score > baseline_score + threshold`
 - unchanged for classification purposes when its delta is within the inclusive
   threshold bounds
 
-The default threshold is `0.05`. Override it with:
+The default threshold is `0.05`. `summary_delta` uses the same
+candidate-minus-baseline direction for each numeric top-level summary metric.
+A summary delta is `null` when either run lacks that measurement.
 
-```bash
-PYTHONPATH=src python3 -m harness_evaluation.cli compare-runs \
-  --baseline path/to/baseline \
-  --candidate path/to/candidate \
-  --threshold 0.1
-```
-
-`summary_delta` uses the same candidate-minus-baseline direction for each
-numeric top-level summary metric. A summary delta is `null` when either run
-lacks that measurement.
-
-The example runs intentionally contain one improvement, one regression, and
-one unchanged task.
+The DeepAgent example runs intentionally contain one improvement, one
+regression, and one unchanged task.

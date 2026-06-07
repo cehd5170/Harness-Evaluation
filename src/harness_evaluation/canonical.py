@@ -70,9 +70,14 @@ def _validate_result(result: dict[str, Any], path: Path) -> str:
         raise CanonicalFormatError(f"{path}: score must be a finite number")
     if "success" in result and not isinstance(result["success"], bool):
         raise CanonicalFormatError(f"{path}: success must be a boolean")
-    for field in ("usage", "metrics", "metadata"):
+    for field in ("usage", "metrics", "artifacts", "metadata", "raw"):
         if field in result and not isinstance(result[field], dict):
             raise CanonicalFormatError(f"{path}: {field} must be an object")
+    raw = result.get("raw")
+    if isinstance(raw, dict) and "source_files" in raw:
+        source_files = raw["source_files"]
+        if not isinstance(source_files, list) or not all(isinstance(item, str) for item in source_files):
+            raise CanonicalFormatError(f"{path}: raw.source_files must be a list of strings")
     return task_id
 
 
