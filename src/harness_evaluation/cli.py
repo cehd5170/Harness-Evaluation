@@ -4,8 +4,11 @@ import argparse
 import json
 from pathlib import Path
 
+from harness_evaluation.canonical import CanonicalFormatError
+from harness_evaluation.compare import compare_runs
 from harness_evaluation.datasets import init_custom_dataset, list_datasets, sample_dataset, validate_dataset
 from harness_evaluation.metrics import summarize_result_dir
+from harness_evaluation.summarize import summarize_run
 from harness_evaluation.usage import apply_pricing, summarize_usage_file
 
 
@@ -52,6 +55,14 @@ def build_parser() -> argparse.ArgumentParser:
     sample.add_argument("--id", required=True)
     sample.add_argument("--root", default=None)
     sample.add_argument("--limit", type=int, default=3)
+
+    summarize = sub.add_parser("summarize-run", help="Summarize a canonical run directory")
+    summarize.add_argument("--run-dir", required=True)
+
+    compare = sub.add_parser("compare-runs", help="Compare two canonical run directories")
+    compare.add_argument("--baseline", required=True)
+    compare.add_argument("--candidate", required=True)
+    compare.add_argument("--threshold", type=float, default=0.05)
     return parser
 
 
@@ -86,6 +97,20 @@ def main() -> int:
     if args.cmd == "sample-dataset":
         root = Path(args.root) if args.root else None
         print(json.dumps(sample_dataset(args.id, root=root, limit=args.limit), ensure_ascii=False, indent=2))
+        return 0
+    if args.cmd == "summarize-run":
+        try:
+            summary = summarize_run(Path(args.run_dir))
+        except CanonicalFormatError as exc:
+            raise SystemExit(str(exc)) from exc
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return 0
+    if args.cmd == "compare-runs":
+        try:
+            comparison = compare_runs(Path(args.baseline), Path(args.candidate), threshold=args.threshold)
+        except (CanonicalFormatError, ValueError) as exc:
+            raise SystemExit(str(exc)) from exc
+        print(json.dumps(comparison, ensure_ascii=False, indent=2))
         return 0
     return 1
 
