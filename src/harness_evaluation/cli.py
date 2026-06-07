@@ -9,6 +9,7 @@ from harness_evaluation.compare import compare_runs
 from harness_evaluation.datasets import init_custom_dataset, list_datasets, sample_dataset, validate_dataset
 from harness_evaluation.ingest import IngestError, ingest_run
 from harness_evaluation.metrics import summarize_result_dir
+from harness_evaluation.runner import RunnerError, run_suite
 from harness_evaluation.summarize import summarize_run
 from harness_evaluation.usage import apply_pricing, summarize_usage_file
 
@@ -69,6 +70,29 @@ def build_parser() -> argparse.ArgumentParser:
     ingest.add_argument("--dataset-version", default=None)
     ingest.add_argument("--code-commit", default=None)
     ingest.add_argument("--created-at", default=None)
+
+    def add_runner_arguments(command: argparse.ArgumentParser) -> None:
+        command.add_argument("--dataset-jsonl", required=True)
+        command.add_argument("--runner", required=True, help="Runner profile JSON")
+        command.add_argument("--output-dir", required=True)
+        command.add_argument("--run-id", required=True)
+        command.add_argument("--system", required=True)
+        command.add_argument("--harness", required=True)
+        command.add_argument("--model", required=True)
+        command.add_argument("--dataset-id", default=None)
+        command.add_argument("--dataset-version", default=None)
+        command.add_argument("--code-commit", default=None)
+        command.add_argument("--created-at", default=None)
+        command.add_argument("--dry-run", action="store_true")
+        command.add_argument("--continue-on-error", action="store_true")
+
+    run_task = sub.add_parser("run-task", help="Run one dataset task through an external CLI profile")
+    add_runner_arguments(run_task)
+    run_task.add_argument("--task-id", required=True)
+
+    run_suite_parser = sub.add_parser("run-suite", help="Run dataset tasks through an external CLI profile")
+    add_runner_arguments(run_suite_parser)
+    run_suite_parser.add_argument("--max-tasks", type=int, default=None)
 
     summarize = sub.add_parser("summarize-run", help="Summarize a canonical run directory")
     summarize.add_argument("--run-dir", required=True)
@@ -133,6 +157,32 @@ def main() -> int:
             raise SystemExit(str(exc)) from exc
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
+    if args.cmd in ("run-task", "run-suite"):
+        metadata = {
+            "run_id": args.run_id,
+            "system": args.system,
+            "harness": args.harness,
+            "model": args.model,
+            "dataset_id": args.dataset_id,
+            "dataset_version": args.dataset_version,
+            "code_commit": args.code_commit,
+            "created_at": args.created_at,
+            "dry_run": args.dry_run,
+            "continue_on_error": args.continue_on_error,
+        }
+        try:
+            result = run_suite(
+                dataset_jsonl=Path(args.dataset_jsonl),
+                runner_profile=Path(args.runner),
+                output_dir=Path(args.output_dir),
+                run_metadata=metadata,
+                max_tasks=args.max_tasks if args.cmd == "run-suite" else None,
+                task_id=args.task_id if args.cmd == "run-task" else None,
+            )
+        except RunnerError as exc:
+            raise SystemExit(str(exc)) from exc
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if not result["errors"] else 1
     if args.cmd == "summarize-run":
         try:
             summary = summarize_run(Path(args.run_dir))

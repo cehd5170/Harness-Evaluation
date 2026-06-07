@@ -1,18 +1,20 @@
 # Canonical Run Format
 
 The canonical run format is the stable boundary between external agent
-harnesses and Harness-Evaluation. External harnesses run and score tasks.
-Harness-Evaluation ingests their result files, summarizes canonical runs, and
-compares canonical runs.
+harnesses and Harness-Evaluation. Harness-Evaluation can ingest external
+results or orchestrate profile-defined external commands, then summarize and
+compare canonical runs.
 
-This repository does not run agents, call models, automate browsers or desktop
-GUIs, execute sandboxes, or perform LLM judging.
+This repository does not implement agents, call models directly, automate
+browsers or desktop GUIs, provide a sandbox, or perform LLM judging.
 
 ## Directory Layout
 
 ```text
 canonical_runs/<run_id>/
   run.json
+  tasks/
+    <task_id>/
   results/
     <task_id>.json
 ```
@@ -57,6 +59,7 @@ Ingestion writes a consistent optional-field shape:
   "success": true,
   "error_type": null,
   "error_message": null,
+  "exit_code": 0,
   "elapsed_sec": 35.0,
   "usage": {
     "input_tokens": 2200,
@@ -85,13 +88,16 @@ Ingestion writes a consistent optional-field shape:
     "source_files": [
       "doc-summary-001.json"
     ]
-  }
+  },
+  "checks": []
 }
 ```
 
 Missing optional scalar measurements may be `null` or omitted. Missing
 optional measurements are excluded from summaries rather than treated as
-zero. `raw.source_files` records the input files consumed for that task.
+zero. `raw.source_files` records task logs or input files used to create the
+result. Runner-produced results include deterministic checker details in
+`checks`.
 
 If both `score` and `success` exist, `score` is used for score aggregation and
 comparison, while `success` is used for the success rate. A result containing

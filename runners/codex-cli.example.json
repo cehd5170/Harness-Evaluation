@@ -1,0 +1,26 @@
+{
+  "id": "codex-cli-example",
+  "type": "subprocess",
+  "command": [
+    "codex",
+    "exec",
+    "--full-auto",
+    "--skip-git-repo-check",
+    "{{prompt}}"
+  ],
+  "cwd": "{{workspace_dir}}",
+  "timeout_sec": 1800,
+  "env": {
+    "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin"
+  },
+  "capture": {
+    "stdout": "stdout.log",
+    "stderr": "stderr.log"
+  },
+  "artifacts": {
+    "glob": "**/*",
+    "exclude": [
+      ".git/**"
+    ]
+  }
+}

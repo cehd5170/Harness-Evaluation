@@ -16,6 +16,9 @@ Recommended optional fields:
 - `repository_base_commit`: commit to check out
 - `docker_image`: execution image
 - `metadata`: arbitrary tags such as difficulty/category/source
+- `workspace.files`: files copied from the dataset directory into the isolated
+  task workspace
+- `checker`: deterministic artifact, command, or JSON checker
 
 ## Create A Dataset
 
@@ -44,27 +47,45 @@ PYTHONPATH=src python3 -m harness_evaluation.cli sample-dataset --id my-custom
 
 ## Use With A Runner
 
-`Harness-Evaluation` does not execute tasks by itself. A runner should read the
-JSONL rows, run each task with your agent/harness, then write result JSON files
-that include at least one score-like field:
+Runner-ready tasks can declare workspace files as strings or source/destination
+objects:
 
 ```json
 {
   "task_id": "custom-001",
-  "score": 1.0,
-  "agent_elapsed_sec": 42.5,
-  "usage_summary": {
-    "available": true,
-    "input_tokens": 1000,
-    "output_tokens": 200,
-    "total_tokens": 1200,
-    "cost_total": 0.01
+  "prompt": "Update report.txt.",
+  "workspace": {
+    "files": [
+      {
+        "source": "inputs/custom-001/report.txt",
+        "destination": "report.txt"
+      }
+    ]
+  },
+  "checker": {
+    "type": "artifact",
+    "expected_files": ["report.txt"],
+    "required_text": {
+      "report.txt": "complete"
+    }
   }
 }
 ```
 
-Then summarize:
+A string workspace entry copies the source to the workspace root using its
+basename. Sources are relative to the dataset directory; destinations are
+relative to the isolated workspace. Symbolic links and escaping paths are
+rejected.
+
+Then run and summarize:
 
 ```bash
-PYTHONPATH=src python3 -m harness_evaluation.cli metrics --results-dir path/to/results
+PYTHONPATH=src python3 -m harness_evaluation.cli run-suite \
+  --dataset-jsonl datasets/my-custom/data/test.jsonl \
+  --runner runners/echo-runner.json \
+  --output-dir runs/my-custom \
+  --run-id my-custom \
+  --system echo \
+  --harness subprocess \
+  --model none
 ```

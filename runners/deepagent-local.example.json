@@ -1,0 +1,28 @@
+{
+  "id": "deepagent-local-example",
+  "type": "subprocess",
+  "command": [
+    "python3",
+    "-m",
+    "deepagent_runner",
+    "--task-json",
+    "{{task_json}}",
+    "--workspace-dir",
+    "{{workspace_dir}}"
+  ],
+  "cwd": "{{workspace_dir}}",
+  "timeout_sec": 1800,
+  "env": {
+    "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin"
+  },
+  "capture": {
+    "stdout": "stdout.log",
+    "stderr": "stderr.log"
+  },
+  "artifacts": {
+    "glob": "**/*",
+    "exclude": [
+      ".git/**"
+    ]
+  }
+}

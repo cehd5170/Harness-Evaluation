@@ -73,6 +73,8 @@ def _validate_result(result: dict[str, Any], path: Path) -> str:
     for field in ("usage", "metrics", "artifacts", "metadata", "raw"):
         if field in result and not isinstance(result[field], dict):
             raise CanonicalFormatError(f"{path}: {field} must be an object")
+    if "checks" in result and not isinstance(result["checks"], list):
+        raise CanonicalFormatError(f"{path}: checks must be a list")
     raw = result.get("raw")
     if isinstance(raw, dict) and "source_files" in raw:
         source_files = raw["source_files"]

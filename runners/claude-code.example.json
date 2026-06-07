@@ -1,0 +1,24 @@
+{
+  "id": "claude-code-example",
+  "type": "subprocess",
+  "command": [
+    "claude",
+    "-p",
+    "{{prompt}}"
+  ],
+  "cwd": "{{workspace_dir}}",
+  "timeout_sec": 1800,
+  "env": {
+    "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin"
+  },
+  "capture": {
+    "stdout": "stdout.log",
+    "stderr": "stderr.log"
+  },
+  "artifacts": {
+    "glob": "**/*",
+    "exclude": [
+      ".git/**"
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "echo-runner",
+  "type": "subprocess",
+  "command": [
+    "/bin/sh",
+    "-c",
+    "printf '%s\n' \"$1\" > agent-output.txt",
+    "echo-runner",
+    "{{prompt}}"
+  ],
+  "cwd": "{{workspace_dir}}",
+  "timeout_sec": 30,
+  "env": {},
+  "capture": {
+    "stdout": "stdout.log",
+    "stderr": "stderr.log"
+  },
+  "artifacts": {
+    "glob": [
+      "agent-output.txt",
+      "*.json"
+    ],
+    "exclude": []
+  }
+}
