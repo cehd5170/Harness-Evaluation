@@ -1,0 +1,40 @@
+{
+  "id": "deepagent-python-example",
+  "type": "subprocess",
+  "command": [
+    "/opt/homebrew/bin/uv",
+    "run",
+    "--with",
+    "deepagents",
+    "--with",
+    "langchain-openai",
+    "python3",
+    "deepagent_demo.py",
+    "--task-json",
+    "{{task_json}}",
+    "--workspace-dir",
+    "{{workspace_dir}}",
+    "--mode",
+    "real"
+  ],
+  "cwd": "{{workspace_dir}}",
+  "timeout_sec": 1800,
+  "env": {
+    "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin",
+    "UV_CACHE_DIR": "{{task_run_dir}}/uv-cache",
+    "DEEPAGENT_MODE": "real",
+    "DEEPAGENT_MODEL": "openai:gpt-5.4"
+  },
+  "capture": {
+    "stdout": "stdout.log",
+    "stderr": "stderr.log"
+  },
+  "artifacts": {
+    "glob": [
+      "result.txt"
+    ],
+    "exclude": [
+      ".git/**"
+    ]
+  }
+}

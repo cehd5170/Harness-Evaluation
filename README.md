@@ -52,6 +52,49 @@ The Codex, Claude Code, Qwen CLI, and DeepAgent profiles are examples. Adjust
 their commands and explicitly declared environment variables for the versions
 installed on your machine.
 
+## Real Python DeepAgent
+
+The bundled `runners/deepagent-python.example.json` profile exercises a real
+Python Deep Agent entrypoint through `create_deep_agent(...)`.
+
+Important:
+
+- This harness does **not** inherit your shell environment.
+- The runner profile only sees the variables listed in its `env` block.
+- If you want to use a real OpenAI-backed Deep Agent, put a valid
+  `OPENAI_API_KEY` into the runner profile you pass to `run-suite`.
+
+Recommended setup:
+
+1. Keep your secret in a local `.env` file or `~/.deepagents/.env`.
+2. Copy `runners/deepagent-python.example.json` to a local untracked file.
+3. Add your `OPENAI_API_KEY` to that local copy's `env` block.
+4. Run the suite with that local profile.
+
+Example:
+
+```bash
+cp runners/deepagent-python.example.json /tmp/deepagent-python.local.json
+# edit /tmp/deepagent-python.local.json and add OPENAI_API_KEY under env
+
+PYTHONPATH=src python3 -m harness_evaluation.cli run-suite \
+  --dataset-jsonl datasets/deepagent-python-demo/data/test.jsonl \
+  --runner /tmp/deepagent-python.local.json \
+  --output-dir runs/deepagent-python-real \
+  --run-id deepagent-python-real \
+  --system deepagent \
+  --harness python \
+  --model demo
+```
+
+That profile uses `uv run --with deepagents --with langchain-openai` and a
+workspace-local `deepagent_demo.py` script. The demo writes `result.txt` in the
+task workspace and the checker verifies that output.
+
+The script itself is here:
+
+- [examples/deepagent_python_demo.py](examples/deepagent_python_demo.py)
+
 ## Safety
 
 - Every task runs inside `tasks/<task_id>/workspace/`, never in the repository

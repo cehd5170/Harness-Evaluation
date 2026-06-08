@@ -70,3 +70,16 @@ and non-interactive modes change between releases, so adjust each command for
 the installed CLI. Explicitly add only the environment variables that command
 needs. Current shell variables, credentials, and `HOME` are not inherited
 automatically.
+
+## Python DeepAgent Demo
+
+The `runners/deepagent-python.example.json` profile is a minimal Python
+DeepAgent-style smoke test. It copies a workspace-local `deepagent_demo.py`
+into the task workspace and invokes it with `python3` so the harness can
+exercise a Python entrypoint without hard-coding repo paths.
+
+By default the demo falls back to a deterministic file write so the repo can
+be smoke-tested without installing `deepagents` or configuring model access.
+To exercise the real `create_deep_agent(...)` code path, install the package
+and set `DEEPAGENT_MODE=real` plus a valid `DEEPAGENT_MODEL` in the profile
+environment.

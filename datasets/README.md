@@ -9,6 +9,7 @@ Local data files are intentionally separated by source:
 - `swe-bench-pro/`: public Hugging Face split `ScaleAI/SWE-bench_Pro`.
 - `terminal-bench-v2/`: source manifest for Terminal-Bench v2. The exact
   84-task AA subset is not publicly pinned here.
+- `workflow-lite/`: three local deterministic tasks for runner smoke tests.
 
 Refresh public downloadable files with:
 

@@ -1,0 +1,18 @@
+{
+  "id": "deepagent-python-demo",
+  "name": "DeepAgent Python Demo",
+  "version": "v1",
+  "aa_component": "custom",
+  "public": false,
+  "schema": "runner-task-jsonl-v1",
+  "local_files": [
+    "data/test.jsonl"
+  ],
+  "required_fields": [
+    "task_id",
+    "prompt",
+    "workspace",
+    "checker"
+  ],
+  "notes": "Minimal task for exercising a Python DeepAgent-style entrypoint through the orchestration layer."
+}

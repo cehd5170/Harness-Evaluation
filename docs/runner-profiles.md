@@ -62,3 +62,9 @@ Avoid putting secret values directly in committed profiles.
 The included Codex CLI, Claude Code, Qwen CLI, and DeepAgent files are
 examples, not pinned CLI integrations. Adjust their commands for installed
 versions and local authentication.
+
+The Python DeepAgent demo profile runs a workspace-local `deepagent_demo.py`
+script that can fall back deterministically when `deepagents` is not installed.
+Set `DEEPAGENT_MODE=real` and `DEEPAGENT_MODEL=<provider:model>` inside the
+script environment if you want to exercise a live `create_deep_agent(...)`
+call.
